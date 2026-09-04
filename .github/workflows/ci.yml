@@ -34,7 +34,7 @@ jobs:
           node-version: 24.20.0
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --no-runtime
 
       # Runs routes:check, prettier --check, eslint, the library build
       # and all three test suites. Cheap checks fail first.
@@ -61,7 +61,7 @@ jobs:
 
       # Uses the version pinned in devDependencies, the same one the
       # commit-msg hook runs locally.
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --no-runtime
 
       - name: Validate the pushed commit
         if: github.event_name == 'push'
