@@ -1,0 +1,24 @@
+<app-sidebar [entitySchemas]="schemas()">
+  @if (isDefaultUrl()) {
+    <div class="dashboard-start">
+      <p class="text-body-secondary">{{ 'dashboardSelectSection' | translate }}</p>
+
+      <section class="card" [attr.aria-label]="'connectionTitle' | translate">
+        <div class="card-body">
+          <h2 class="card-title h6 mb-3">{{ 'connectionTitle' | translate }}</h2>
+          <dl class="row mb-0">
+            @for (fact of connection(); track fact.captionKey) {
+              <dt class="col-sm-5 text-truncate fw-semibold" [title]="fact.captionKey | translate">
+                {{ fact.captionKey | translate }}
+              </dt>
+              <dd class="col-sm-7 text-break mb-2">{{ fact.value }}</dd>
+            }
+          </dl>
+        </div>
+      </section>
+    </div>
+  } @else {
+    <router-outlet />
+  }
+</app-sidebar>
+<app-user-profile />

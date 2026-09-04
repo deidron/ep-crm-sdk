@@ -1,0 +1,9 @@
+.error-page {
+  min-height: 60vh;
+  gap: 0.25rem;
+  padding: 1rem;
+}
+
+.error-page .btn {
+  margin-top: 1rem;
+}

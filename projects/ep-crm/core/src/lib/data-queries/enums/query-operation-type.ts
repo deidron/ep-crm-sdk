@@ -1,0 +1,12 @@
+export enum QueryOperationType {
+  SELECT = 0,
+  INSERT = 1,
+  UPDATE = 2,
+  DELETE = 3,
+  BATCH = 4,
+  LISTSELECT = 5,
+  FILTEREDSELECT = 6,
+  LOOKUPSELECT = 7,
+  UPDATE_LOCALIZATION = 8,
+  SELECT_LOCALIZATION = 9,
+}

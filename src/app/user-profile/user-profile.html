@@ -1,0 +1,122 @@
+@if (opened()) {
+  <div class="modal-backdrop fade show" aria-hidden="true" (click)="onClose()"></div>
+
+  <div
+    #dialog
+    class="modal d-block"
+    tabindex="-1"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="userProfileTitle"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5 mb-0" id="userProfileTitle">
+            {{ 'profileTitle' | translate }}
+          </h2>
+          <button
+            type="button"
+            class="btn-close"
+            [attr.aria-label]="'commonClose' | translate"
+            (click)="onClose()"
+          ></button>
+        </div>
+
+        <div class="modal-body">
+          @if (loading()) {
+            <div class="d-flex align-items-center gap-2 text-body-secondary" role="status">
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              <span>{{ 'commonLoading' | translate }}</span>
+            </div>
+          } @else if (failed()) {
+            <div class="alert alert-danger mb-0" role="alert">
+              {{ 'profileLoadFailed' | translate }}
+            </div>
+          } @else if (empty()) {
+            <p class="text-body-secondary mb-0">{{ 'profileNoData' | translate }}</p>
+          } @else {
+            <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+              <strong class="text-truncate">{{ userName() }}</strong>
+              <span class="badge text-bg-dark flex-shrink-0">{{
+                'profileTaskCount' | translate: { count: activityCount() }
+              }}</span>
+            </div>
+
+            <dl class="row mb-0">
+              @for (field of fields(); track field.captionKey) {
+                <dt
+                  class="col-sm-5 text-truncate fw-semibold"
+                  [title]="field.captionKey | translate"
+                >
+                  {{ field.captionKey | translate }}
+                </dt>
+                <dd class="col-sm-7 text-break">
+                  @if (field.value) {
+                    {{ field.value }}
+                  } @else {
+                    <span class="text-body-secondary">—</span>
+                  }
+                </dd>
+              }
+            </dl>
+
+            <h3 class="h6 mt-4 mb-2">{{ 'profileRecentTasks' | translate }}</h3>
+            @if (activities().length) {
+              <ul class="list-group list-group-flush">
+                @for (activity of pagedActivities(); track activity.id) {
+                  <li class="list-group-item px-0">
+                    <div class="d-flex justify-content-between gap-3">
+                      <span class="text-break">{{ activity.title }}</span>
+                      <span class="text-body-secondary small flex-shrink-0">
+                        {{ activity.startDate }}
+                      </span>
+                    </div>
+                    @if (activity.status) {
+                      <span class="badge text-bg-light mt-1">{{ activity.status }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+
+              @if (pageCount() > 1) {
+                <nav
+                  class="d-flex align-items-center justify-content-between gap-2 mt-2"
+                  [attr.aria-label]="'profilePages' | translate"
+                >
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-dark"
+                    [disabled]="page() === 0"
+                    (click)="onPrevPage()"
+                  >
+                    {{ 'profilePrevious' | translate }}
+                  </button>
+                  <span class="text-body-secondary small"
+                    >{{ page() + 1 }} / {{ pageCount() }}</span
+                  >
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-dark"
+                    [disabled]="page() === pageCount() - 1"
+                    (click)="onNextPage()"
+                  >
+                    {{ 'profileNext' | translate }}
+                  </button>
+                </nav>
+              }
+            } @else {
+              <p class="text-body-secondary mb-0">{{ 'profileNoTasks' | translate }}</p>
+            }
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-dark" (click)="onClose()">
+            {{ 'commonClose' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

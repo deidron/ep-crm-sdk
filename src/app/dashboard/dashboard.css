@@ -1,0 +1,5 @@
+/* The card states the facts about the connection, it is not the content of the page:
+   a width of its own keeps it from stretching across an empty area. */
+.dashboard-start .card {
+  max-width: 32rem;
+}

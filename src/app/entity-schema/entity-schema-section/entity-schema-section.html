@@ -1,0 +1,105 @@
+<h1 class="h4 mb-3">{{ caption() }}</h1>
+
+<div class="input-group input-group-sm search-box mb-3">
+  <input
+    type="search"
+    class="form-control"
+    [placeholder]="'sectionSearchPlaceholder' | translate"
+    [attr.aria-label]="'sectionSearchPlaceholder' | translate"
+    [value]="searchTerm()"
+    (input)="onSearchInput($event)"
+    (keydown.enter)="onSearchSubmit()"
+  />
+  <button type="button" class="btn btn-outline-dark" (click)="onSearchSubmit()">
+    {{ 'sectionSearchSubmit' | translate }}
+  </button>
+  @if (searchTerm() || search()) {
+    <button type="button" class="btn btn-outline-dark" (click)="onSearchClear()">
+      {{ 'sectionSearchClear' | translate }}
+    </button>
+  }
+</div>
+
+@if (loading()) {
+  <div class="d-flex align-items-center gap-2 text-body-secondary" role="status">
+    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+    <span>{{ 'commonLoading' | translate }}</span>
+  </div>
+}
+
+@if (errorMessage()) {
+  <div class="alert alert-danger mt-3" role="alert">
+    <strong class="d-block mb-1">{{ 'sectionQueryError' | translate }}</strong>
+    <pre class="mb-0 error-text">{{ errorMessage() }}</pre>
+  </div>
+}
+
+@if (rows().length) {
+  <div class="table-responsive mt-3">
+    <table class="table table-sm table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          @for (column of columns(); track column.name) {
+            <th scope="col">{{ column.caption }}</th>
+          }
+          <th scope="col">
+            <span class="visually-hidden">{{ 'sectionActions' | translate }}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row['Id']) {
+          <tr>
+            @for (column of columns(); track column.name) {
+              <td [attr.data-label]="column.caption">
+                @if (column.isDate && asDate(row[column.name]); as date) {
+                  {{ date | date: dateTimePattern() }}
+                } @else {
+                  {{ row[column.name] }}
+                }
+              </td>
+            }
+            <td class="text-end row-actions">
+              <button type="button" class="btn btn-outline-dark btn-sm" (click)="openPage(row)">
+                {{ 'sectionOpen' | translate }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <nav
+    class="d-flex align-items-center flex-wrap gap-2 mt-3"
+    [attr.aria-label]="'sectionPagination' | translate"
+  >
+    <button
+      type="button"
+      class="btn btn-outline-dark btn-sm"
+      [disabled]="!hasPreviousPage() || loading()"
+      (click)="previousPage()"
+    >
+      {{ 'sectionPrevious' | translate }}
+    </button>
+    <button
+      type="button"
+      class="btn btn-outline-dark btn-sm"
+      [disabled]="!hasNextPage() || loading()"
+      (click)="nextPage()"
+    >
+      {{ 'sectionNext' | translate }}
+    </button>
+    <span class="text-body-secondary small" aria-live="polite">
+      {{ 'sectionRange' | translate: { from: rangeFrom(), to: rangeTo() } }}
+    </span>
+  </nav>
+}
+
+@if (!loading() && !errorMessage() && !rows().length) {
+  @if (search()) {
+    <p class="text-body-secondary mt-3">{{ 'sectionNothingFound' | translate }}</p>
+  } @else {
+    <p class="text-body-secondary mt-3">{{ 'sectionEmpty' | translate }}</p>
+  }
+}

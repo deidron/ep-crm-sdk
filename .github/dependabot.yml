@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    # No target-branch -> PRs target the default branch (main).
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci

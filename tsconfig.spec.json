@@ -1,0 +1,12 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals"]
+  },
+  /* The testing helpers belong here and nowhere else: tsconfig.app excludes them along with the
+     specs, so left out of this list too they would be compiled by the test bundler and type-checked
+     by nothing — an error in one of them would surface as a failing test rather than as an error. */
+  "include": ["src/**/*.d.ts", "src/**/*.spec.ts", "src/**/*.testing.ts"]
+}

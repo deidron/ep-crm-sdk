@@ -1,0 +1,96 @@
+<!-- NgForm ставит форме novalidate, поэтому браузер незаполненные поля не удерживает: за это
+     отвечает сама форма. Ссылка на директиву даёт и общую валидность для кнопки, и признак
+     сделанной попытки — до неё подсвечивать пустые поля рано. -->
+<form #signInForm="ngForm" class="form-signin" (ngSubmit)="onSignIn()">
+  <div class="text-center">
+    <img src="assets/img/angular_black.svg" class="logo-image" alt="" />
+    <h1 class="h3 mb-3 fw-normal">{{ 'loginTitle' | translate }}</h1>
+    @if (platformName) {
+      <p class="text-body-secondary small mb-3">
+        {{ 'loginPlatform' | translate }} <strong>{{ platformName }}</strong>
+      </p>
+    }
+    @if (unavailable()) {
+      <div class="alert alert-warning text-start" role="alert">
+        <strong class="d-block mb-1">{{ 'loginUnavailableTitle' | translate }}</strong>
+        <span class="small">{{ 'loginUnavailableText' | translate }}</span>
+      </div>
+      <button
+        class="w-100 btn btn-lg btn-outline-dark d-flex align-items-center justify-content-center gap-2"
+        type="button"
+        [disabled]="checking()"
+        (click)="onRetry()"
+      >
+        @if (checking()) {
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        }
+        {{ 'loginRetry' | translate }}
+      </button>
+      <p class="mt-5 mb-3 text-body-secondary">&copy; {{ currentYear }}</p>
+    } @else {
+      @if (errorMessage(); as message) {
+        <div class="alert alert-danger" role="alert">
+          <strong>{{ message }}</strong>
+        </div>
+      }
+      <div class="form-floating">
+        <input
+          #userNameField="ngModel"
+          type="text"
+          class="form-control"
+          id="userNameInput"
+          name="userName"
+          autocomplete="username"
+          required
+          [placeholder]="'loginUserName' | translate"
+          [class.is-invalid]="signInForm.submitted && userNameField.invalid"
+          [attr.aria-describedby]="
+            signInForm.submitted && userNameField.invalid ? 'userNameError' : null
+          "
+          [disabled]="loading()"
+          [(ngModel)]="userName"
+        />
+        <label for="userNameInput">{{ 'loginUserName' | translate }}</label>
+        @if (signInForm.submitted && userNameField.invalid) {
+          <div class="invalid-feedback text-start" id="userNameError">
+            {{ 'loginRequiredField' | translate }}
+          </div>
+        }
+      </div>
+      <div class="form-floating">
+        <input
+          #passwordField="ngModel"
+          type="password"
+          class="form-control"
+          id="passwordInput"
+          name="password"
+          autocomplete="current-password"
+          required
+          [placeholder]="'loginPassword' | translate"
+          [class.is-invalid]="signInForm.submitted && passwordField.invalid"
+          [attr.aria-describedby]="
+            signInForm.submitted && passwordField.invalid ? 'passwordError' : null
+          "
+          [disabled]="loading()"
+          [(ngModel)]="password"
+        />
+        <label for="passwordInput">{{ 'loginPassword' | translate }}</label>
+        @if (signInForm.submitted && passwordField.invalid) {
+          <div class="invalid-feedback text-start" id="passwordError">
+            {{ 'loginRequiredField' | translate }}
+          </div>
+        }
+      </div>
+      <button
+        class="w-100 btn btn-lg btn-dark d-flex align-items-center justify-content-center gap-2"
+        type="submit"
+        [class.loading]="loading()"
+        [disabled]="loading()"
+      >
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        {{ 'loginSubmit' | translate }}
+      </button>
+      <p class="mt-5 mb-3 text-body-secondary">&copy; {{ currentYear }}</p>
+    }
+  </div>
+</form>

@@ -1,0 +1,9 @@
+{
+  "name": "@ep-crm/core",
+  "version": "0.0.1",
+  "description": "Contracts and query building for the Creatio/BPMSoft DataService. Plain TypeScript with no framework dependency.",
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

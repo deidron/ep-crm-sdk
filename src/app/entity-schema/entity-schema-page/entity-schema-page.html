@@ -1,0 +1,132 @@
+<div
+  class="d-flex justify-content-between align-items-center gap-3 py-2 mb-3 border-top border-bottom"
+>
+  <div class="min-width-0">
+    <strong class="d-block text-truncate">{{ caption() }}</strong>
+    <span class="text-body-secondary small font-monospace">{{ id() }}</span>
+  </div>
+
+  <div class="d-flex gap-2 flex-shrink-0">
+    @if (editing()) {
+      <button
+        type="button"
+        class="btn btn-dark btn-sm"
+        [disabled]="saving() || !dirty() || incomplete()"
+        (click)="onSave()"
+      >
+        @if (saving()) {
+          <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+        }
+        {{ 'commonSave' | translate }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-dark btn-sm"
+        [disabled]="saving()"
+        (click)="onCancel()"
+      >
+        {{ 'commonCancel' | translate }}
+      </button>
+    } @else {
+      @if (canEdit()) {
+        <button type="button" class="btn btn-outline-dark btn-sm" (click)="onEdit()">
+          {{ 'commonEdit' | translate }}
+        </button>
+      }
+      <button type="button" class="btn btn-outline-dark btn-sm" (click)="onClose()">
+        {{ 'commonClose' | translate }}
+      </button>
+    }
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="d-flex align-items-center gap-2 text-body-secondary" role="status">
+    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+    <span>{{ 'commonLoading' | translate }}</span>
+  </div>
+} @else if (schemaUnavailable()) {
+  <div class="alert alert-warning" role="alert">{{ 'recordSchemaUnavailable' | translate }}</div>
+} @else if (notFound()) {
+  <div class="alert alert-warning" role="alert">{{ 'recordNotFound' | translate }}</div>
+} @else {
+  @if (saveError()) {
+    <div class="alert alert-danger" role="alert">{{ saveError() }}</div>
+  }
+
+  @if (editing()) {
+    @if (incomplete()) {
+      <p class="text-body-secondary small">{{ 'recordRequiredHint' | translate }}</p>
+    }
+
+    <div class="row g-3">
+      @for (field of fields(); track field.name) {
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold" [for]="`field-${field.name}`" [title]="field.name">
+            {{ field.caption }}
+            @if (field.isRequired && field.editor) {
+              <span class="text-danger" aria-hidden="true">*</span>
+            }
+          </label>
+
+          @switch (field.editor) {
+            @case ('boolean') {
+              <div class="form-check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  [id]="`field-${field.name}`"
+                  [checked]="draft()[field.name] === 'true'"
+                  [disabled]="saving()"
+                  (change)="onFieldInput(field.name, $event)"
+                />
+              </div>
+            }
+            @case ('textarea') {
+              <textarea
+                class="form-control"
+                rows="3"
+                [id]="`field-${field.name}`"
+                [value]="draft()[field.name]"
+                [disabled]="saving()"
+                (input)="onFieldInput(field.name, $event)"
+              ></textarea>
+            }
+            @case (null) {
+              <p class="form-control-plaintext text-break mb-0" [id]="`field-${field.name}`">
+                @if (field.value) {
+                  {{ field.value }}
+                } @else {
+                  <span class="text-body-secondary">—</span>
+                }
+              </p>
+            }
+            @default {
+              <input
+                class="form-control"
+                [type]="field.editor === 'datetime' ? 'datetime-local' : field.editor"
+                [id]="`field-${field.name}`"
+                [value]="draft()[field.name]"
+                [disabled]="saving()"
+                (input)="onFieldInput(field.name, $event)"
+              />
+            }
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <dl class="row mb-0">
+      @for (field of fields(); track field.name) {
+        <dt class="col-sm-4 text-truncate fw-semibold" [title]="field.name">{{ field.caption }}</dt>
+        <dd class="col-sm-8 text-break">
+          @if (field.value) {
+            {{ field.value }}
+          } @else {
+            <span class="text-body-secondary">—</span>
+          }
+        </dd>
+      }
+    </dl>
+  }
+}

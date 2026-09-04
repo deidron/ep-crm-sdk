@@ -1,0 +1,12 @@
+/* Build configuration of the probe bundle.
+   The probe is built against the sources of the packages rather than against dist:
+   it is a diagnostic tool and has to reflect the current state of the working tree. */
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/probe",
+    "types": [],
+    "resolveJsonModule": true
+  },
+  "include": ["main.ts"]
+}

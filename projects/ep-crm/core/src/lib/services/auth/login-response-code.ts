@@ -1,0 +1,8 @@
+export enum LoginResponseCode {
+  SUCCESS = 0,
+  ERROR = 1,
+  CHANGEPASSWORDINFO = 2,
+  NEED_GRANT_LICENSE = 3,
+  NO_LICENSE = 4,
+  PASSWORDEXPIRED = 5,
+}

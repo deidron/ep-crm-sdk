@@ -1,0 +1,246 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "packageManager": "pnpm"
+  },
+  "newProjectRoot": "projects",
+  "schematics": {
+    "@schematics/angular:component": {
+      "type": "",
+      "style": "css"
+    },
+    "@schematics/angular:directive": {
+      "type": ""
+    },
+    "@schematics/angular:service": {
+      "type": ""
+    }
+  },
+  "projects": {
+    "ep-crm-demo": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/main.ts",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/locale",
+                "output": "locale"
+              }
+            ],
+            "styles": ["src/styles.css", "node_modules/bootstrap/dist/css/bootstrap.min.css"],
+            "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ]
+            },
+            "bpmsoft": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.bpmsoft.ts"
+                }
+              ]
+            },
+            "terrasoft": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.terrasoft.ts"
+                }
+              ]
+            },
+            "iis": {
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "src/assets",
+                  "output": "assets"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "src/locale",
+                  "output": "locale"
+                },
+                {
+                  "glob": "web.config",
+                  "input": "server",
+                  "output": "."
+                }
+              ]
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "ep-crm-demo:build:production"
+            },
+            "development": {
+              "buildTarget": "ep-crm-demo:build:development"
+            }
+          },
+          "defaultConfiguration": "development",
+          "options": {
+            "proxyConfig": "proxy.config.mjs"
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+          }
+        }
+      }
+    },
+    "ep-crm-probe": {
+      "projectType": "application",
+      "root": "probe",
+      "sourceRoot": "probe",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "probe/main.ts",
+            "tsConfig": "probe/tsconfig.probe.json",
+            "outputPath": {
+              "base": "dist/probe",
+              "browser": ""
+            },
+            "index": false,
+            "outputHashing": "none",
+            "polyfills": [],
+            "sourceMap": false,
+            "optimization": true
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["probe/**/*.ts", "probe/**/*.html"]
+          }
+        }
+      }
+    },
+    "@ep-crm/core": {
+      "projectType": "library",
+      "root": "projects/ep-crm/core",
+      "sourceRoot": "projects/ep-crm/core/src",
+      "prefix": "ep",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ep-crm/core/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/ep-crm/core/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/ep-crm/core/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/ep-crm/core/**/*.ts", "projects/ep-crm/core/**/*.html"]
+          }
+        }
+      }
+    },
+    "@ep-crm/devkit": {
+      "projectType": "library",
+      "root": "projects/ep-crm/devkit",
+      "sourceRoot": "projects/ep-crm/devkit/src",
+      "prefix": "ep",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ep-crm/devkit/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/ep-crm/devkit/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/ep-crm/devkit/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/ep-crm/devkit/**/*.ts",
+              "projects/ep-crm/devkit/**/*.html"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,96 @@
+<div class="layout d-flex">
+  <div class="wrapper d-flex">
+    <div class="global d-flex flex-column flex-shrink-0 bg-dark">
+      <a
+        routerLink="/dashboard"
+        class="d-block p-3 text-decoration-none"
+        [title]="'menuHome' | translate"
+      >
+        <img class="logo-image" alt="" [src]="logoImagePath" />
+        <span class="visually-hidden">{{ 'menuHome' | translate }}</span>
+      </a>
+      <div class="dropdown mt-auto">
+        <button
+          type="button"
+          class="btn d-flex align-items-center justify-content-center p-3 text-white text-decoration-none dropdown-toggle"
+          id="dropdownUser"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          [attr.aria-label]="'menuUser' | translate"
+        >
+          <img alt="" width="24" height="24" class="rounded-circle" [src]="userImagePath()" />
+        </button>
+        <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser">
+          <li>
+            <button type="button" class="dropdown-item" (click)="onProfile()">
+              {{ 'menuProfile' | translate }}
+            </button>
+          </li>
+          <li>
+            <hr class="dropdown-divider" />
+          </li>
+          @if (canSignOut) {
+            <li>
+              <button type="button" class="dropdown-item" (click)="onSignOut()">
+                {{ 'menuSignOut' | translate }}
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+    <div
+      class="context bg-dark"
+      [class.collapsed]="collapsed()"
+      [attr.inert]="collapsed() ? '' : null"
+    >
+      <div class="menu d-flex flex-column flex-shrink-0">
+        <a routerLink="/dashboard" class="d-block p-3 text-white text-decoration-none">
+          <span class="fs-4">EP CRM Demo</span>
+        </a>
+        <ul class="nav nav-pills flex-column p-2 mb-auto">
+          @for (entitySchema of entitySchemas(); track entitySchema.schema.name) {
+            <li class="nav-item menu-item" [routerLinkActive]="['link-active']">
+              <a
+                class="nav-link text-white d-flex align-items-center gap-2"
+                ariaCurrentWhenActive="page"
+                [routerLink]="entitySchema.schema.name"
+                [routerLinkActive]="[]"
+                (click)="onMenuItemClick()"
+              >
+                <img src="assets/img/menu_item.svg" class="menu-icon" alt="" />
+                <span class="text-truncate">{{ getCaption(entitySchema.schema.caption) }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+    @if (!collapsed()) {
+      <div class="menu-backdrop" aria-hidden="true" (click)="onCollapseButtonClick()"></div>
+    }
+    <div class="collapse-container" [class.collapsed]="collapsed()">
+      <button
+        type="button"
+        class="collapse-button"
+        [class.collapsed]="collapsed()"
+        [attr.aria-expanded]="!collapsed()"
+        [attr.aria-label]="(collapsed() ? 'menuExpand' : 'menuCollapse') | translate"
+        (click)="onCollapseButtonClick()"
+      >
+        <svg viewBox="0 0 24 24" role="presentation">
+          <path
+            d="M13.706 9.698a.988.988 0 000-1.407 1.01 1.01 0 00-1.419 0l-2.965 2.94a1.09 1.09 0 000 1.548l2.955 2.93a1.01 1.01 0 001.42 0 .988.988 0 000-1.407l-2.318-2.297 2.327-2.307z"
+            fill="currentColor"
+            fill-rule="evenodd"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+  <main class="content flex-grow-1">
+    <div class="p-3">
+      <ng-content />
+    </div>
+  </main>
+</div>

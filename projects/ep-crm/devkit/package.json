@@ -1,0 +1,15 @@
+{
+  "name": "@ep-crm/devkit",
+  "version": "0.0.1",
+  "description": "The binding of @ep-crm/core to Angular: injectable services, transport and runtime mode detection.",
+  "peerDependencies": {
+    "@angular/common": "^22.1.0",
+    "@angular/core": "^22.1.0",
+    "@ep-crm/core": "^0.0.1",
+    "rxjs": "^7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

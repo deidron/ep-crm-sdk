@@ -1,0 +1,17 @@
+{
+  "ping":                 { "path": "api/HealthCheck/Ping", "scope": "application" },
+  "login":                { "path": "ServiceModel/AuthService.svc/Login", "scope": "application", "embedded": false },
+  "logout":               { "path": "rest/MainMenuService/Logout", "scope": "workspace" },
+  "currentUserInfo":      { "path": "ServiceModel/UserInfoService.svc/GetCurrentUserInfo", "scope": "workspace" },
+  "select":               { "path": "DataService/json/SyncReply/SelectQuery", "scope": "workspace" },
+  "insert":               { "path": "DataService/json/SyncReply/InsertQuery", "scope": "workspace" },
+  "update":               { "path": "DataService/json/SyncReply/UpdateQuery", "scope": "workspace" },
+  "delete":               { "path": "DataService/json/SyncReply/DeleteQuery", "scope": "workspace" },
+  "batch":                { "path": "DataService/json/SyncReply/BatchQuery", "scope": "workspace" },
+  "entitySchemaManager":  { "path": "DataService/json/SyncReply/EntitySchemaManagerRequest", "scope": "workspace" },
+  "entitySchema":         { "path": "DataService/json/SyncReply/EntitySchemaRequest", "scope": "workspace" },
+  "entityImg":            { "path": "img/entity/hash/SysImage/Data", "scope": "workspace" },
+  "rights":               { "path": "rest/RightsService/GetSchemaOperationRightLevel", "scope": "workspace" },
+  "runProcess":           { "path": "ServiceModel/ProcessEngineService.svc/RunProcess", "scope": "workspace" },
+  "deleteRecords":        { "path": "rest/GridUtilitiesService/DeleteRecordsAsync", "scope": "workspace" }
+}

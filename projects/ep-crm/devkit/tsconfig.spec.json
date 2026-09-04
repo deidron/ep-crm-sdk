@@ -1,0 +1,15 @@
+/* Test configuration of the @ep-crm/devkit package. */
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../../out-tsc/spec",
+    "types": ["vitest/globals"],
+    /* As with the package build: the tests run against the built @ep-crm/core,
+       otherwise its sources end up in the devkit compilation and violate rootDir.
+       Hence `ng build @ep-crm/core` is required before `ng test @ep-crm/devkit`. */
+    "paths": {
+      "@ep-crm/core": ["../../../dist/ep-crm/core"]
+    }
+  },
+  "include": ["src/**/*.d.ts", "src/**/*.spec.ts"]
+}

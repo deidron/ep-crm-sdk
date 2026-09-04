@@ -1,0 +1,6 @@
+# Generated
+pnpm-lock.yaml
+src/app/config/service-routes.json
+
+# Vendored
+probe/platform-package/

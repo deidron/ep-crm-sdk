@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # `edited` matters: the PR title becomes the squash commit message,
+    # so renaming a PR has to re-trigger the commit message checks.
+    types: [opened, edited, synchronize, reopened]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Format, lint, build, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Must precede setup-node so that `cache: pnpm` can find the store.
+      # The version comes from the `packageManager` field in package.json.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          # Keep in sync with `devEngines.runtime.version` in package.json.
+          node-version: 24.20.0
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Runs routes:check, prettier --check, eslint, the library build
+      # and all three test suites. Cheap checks fail first.
+      - run: pnpm test
+
+  commitlint:
+    name: Commit messages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # commitlint resolves a commit range, so a shallow clone is not enough.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          # Keep in sync with `devEngines.runtime.version` in package.json.
+          node-version: 24.20.0
+          cache: pnpm
+
+      # Uses the version pinned in devDependencies, the same one the
+      # commit-msg hook runs locally.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Validate the pushed commit
+        if: github.event_name == 'push'
+        run: pnpm exec commitlint --last --verbose
+
+      - name: Validate every commit in the pull request
+        if: github.event_name == 'pull_request'
+        run: >-
+          pnpm exec commitlint --verbose
+          --from ${{ github.event.pull_request.base.sha }}
+          --to ${{ github.event.pull_request.head.sha }}
+
+      # Merges are squash-only, so the PR title — not the branch commits —
+      # is what lands in the history of main.
+      # The title is untrusted input: pass it through env, never interpolate
+      # `${{ ... }}` straight into `run`, which would allow shell injection.
+      - name: Validate the pull request title
+        # Dependabot titles are machine-written and cannot be reworded; its
+        # commits are skipped in commitlint.config.mjs for the same reason.
+        if: >-
+          github.event_name == 'pull_request'
+          && github.event.pull_request.user.login != 'dependabot[bot]'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" | pnpm exec commitlint --verbose
+
+  ci-success:
+    name: CI Success
+    # The single context required by the main-protection ruleset. Adding or
+    # renaming jobs then only means updating `needs`, not the ruleset.
+    #
+    # `if: always()` is mandatory. Without it this job is skipped whenever a
+    # dependency fails, and a skipped job reports success to branch protection.
+    if: always()
+    needs: [verify, commitlint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check that every required job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Required job results: $RESULTS"
+          if [ -z "$RESULTS" ]; then
+            echo "::error::No job results were reported"
+            exit 1
+          fi
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error::A required job did not succeed"
+              exit 1
+            fi
+          done

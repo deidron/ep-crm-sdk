@@ -1,0 +1,18 @@
+/* Build configuration of the @ep-crm/devkit package. */
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../../out-tsc/lib",
+    "declaration": true,
+    "declarationMap": true,
+    "types": [],
+    /* The package is built against the built @ep-crm/core rather than its sources:
+       otherwise they end up in the devkit compilation and violate rootDir.
+       Hence the build order: core first, then devkit. */
+    "paths": {
+      "@ep-crm/core": ["../../../dist/ep-crm/core"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/*.spec.ts"]
+}

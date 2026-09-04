@@ -1,0 +1,52 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "paths": {
+      "@ep-crm/core": ["./projects/ep-crm/core/src/public-api.ts", "./dist/ep-crm/core"],
+      "@ep-crm/devkit": ["./projects/ep-crm/devkit/src/public-api.ts", "./dist/ep-crm/devkit"],
+      "@app/*": ["./src/app/*"]
+    },
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictStandalone": true,
+    "typeCheckHostBindings": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/ep-crm/core/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/ep-crm/core/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/ep-crm/devkit/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/ep-crm/devkit/tsconfig.spec.json"
+    }
+  ]
+}
