@@ -19,6 +19,7 @@ import {
   EntitySchema,
   EntitySchemaColumn,
   FilterUtils,
+  findPrimaryDisplayColumn,
   findSchemaColumn,
   getLocalizedString,
   MacrosFunctionColumn,
@@ -86,9 +87,24 @@ export class EntitySchemaSection {
     defaultValue: null as EntitySchema | null,
   });
 
+  private readonly hasDisplayColumn: Signal<boolean> = computed(
+    () => findPrimaryDisplayColumn(this.schemaResource.value()) !== null,
+  );
+
+  readonly canSearch: Signal<boolean> = this.hasDisplayColumn;
+
   private readonly pageResource = rxResource({
-    params: () => ({ schemaName: this.schemaName(), page: this.page(), search: this.search() }),
-    stream: ({ params }) => this.loadPage(params.schemaName, params.page, params.search),
+    params: () => ({
+      schemaName: this.schemaName(),
+      page: this.page(),
+      search: this.search(),
+      withDisplayColumn: this.hasDisplayColumn(),
+      schemaLoading: this.schemaResource.isLoading(),
+    }),
+    stream: ({ params }) =>
+      params.schemaLoading
+        ? of([])
+        : this.loadPage(params.schemaName, params.page, params.search, params.withDisplayColumn),
     defaultValue: [] as Entity[],
   });
 
@@ -111,6 +127,9 @@ export class EntitySchemaSection {
       };
     });
 
+    if (!this.hasDisplayColumn()) {
+      return columns;
+    }
     return [
       {
         name: displayColumnAlias,
@@ -123,7 +142,9 @@ export class EntitySchemaSection {
 
   readonly rows: Signal<Entity[]> = computed(() => this.pageResource.value().slice(0, pageSize));
 
-  readonly loading: Signal<boolean> = this.pageResource.isLoading;
+  readonly loading: Signal<boolean> = computed(
+    () => this.schemaResource.isLoading() || this.pageResource.isLoading(),
+  );
 
   readonly errorMessage: Signal<string | null> = computed(() => {
     const error: unknown = this.pageResource.error();
@@ -194,18 +215,21 @@ export class EntitySchemaSection {
     schemaName: string | undefined,
     page: number,
     search: string,
+    withDisplayColumn: boolean,
   ): Observable<Entity[]> {
     if (!schemaName) {
       return of([]);
     }
     const query: SelectQuery = new SelectQuery(schemaName);
     columnNames.forEach((column) => query.addColumn(column, column));
-    query.addQueryColumn(
-      new MacrosFunctionColumn(QueryMacrosType.PRIMARY_DISPLAY_COLUMN),
-      displayColumnAlias,
-    );
+    if (withDisplayColumn) {
+      query.addQueryColumn(
+        new MacrosFunctionColumn(QueryMacrosType.PRIMARY_DISPLAY_COLUMN),
+        displayColumnAlias,
+      );
+    }
     query.columns.collection.get('CreatedOn')?.withOrdering(OrderDirection.DESC, 0);
-    if (search) {
+    if (search && withDisplayColumn) {
       query.addFilter(
         'searchFilter',
         FilterUtils.createPrimaryDisplayColumnFilterWithParameter(

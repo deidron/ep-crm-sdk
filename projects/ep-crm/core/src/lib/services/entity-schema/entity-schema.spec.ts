@@ -1,5 +1,10 @@
 import { DataValueType } from '../../types/data-value-type';
-import { EntitySchema, findSchemaColumn, getSchemaColumns } from './entity-schema';
+import {
+  EntitySchema,
+  findPrimaryDisplayColumn,
+  findSchemaColumn,
+  getSchemaColumns,
+} from './entity-schema';
 
 const schema: EntitySchema = {
   uId: 'schema-uid',
@@ -73,5 +78,25 @@ describe('findSchemaColumn', () => {
 
   it('returns null for a column the object does not have', () => {
     expect(findSchemaColumn(schema, 'NoSuchColumn')).toBeNull();
+  });
+});
+
+describe('findPrimaryDisplayColumn', () => {
+  it('finds the column the schema names its records by', () => {
+    const named: EntitySchema = {
+      ...schema,
+      primaryDisplayColumnUId: 'e80190a5-03b2-4095-90f7-a193a960adee',
+    };
+
+    expect(findPrimaryDisplayColumn(named)?.name).toBe('CreatedOn');
+  });
+
+  it('returns null for a schema that reports none', () => {
+    expect(findPrimaryDisplayColumn(schema)).toBeNull();
+    expect(findPrimaryDisplayColumn(null)).toBeNull();
+  });
+
+  it('returns null when the reported column is not among the columns', () => {
+    expect(findPrimaryDisplayColumn({ ...schema, primaryDisplayColumnUId: 'absent' })).toBeNull();
   });
 });

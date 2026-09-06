@@ -32,8 +32,20 @@ const schema: EntitySchema = {
         caption: { 'ru-RU': 'Дата создания', 'en-US': 'Created on' },
         dataValueType: DataValueType.DATE_TIME,
       },
+      name: {
+        uId: 'name',
+        name: 'Name',
+        caption: { 'ru-RU': 'ФИО', 'en-US': 'Full name' },
+        dataValueType: DataValueType.TEXT,
+      },
     },
   },
+  primaryDisplayColumnUId: 'name',
+} as unknown as EntitySchema;
+
+const namelessSchema: EntitySchema = {
+  ...schema,
+  primaryDisplayColumnUId: undefined,
 } as unknown as EntitySchema;
 
 const createdOn: Date = new Date(2026, 1, 1, 13, 45, 30);
@@ -52,7 +64,7 @@ interface Setup {
   sent: SelectQuery[];
 }
 
-function configure(available: Entity[]): Setup {
+function configure(available: Entity[], withDisplayColumn: EntitySchema = schema): Setup {
   const sent: SelectQuery[] = [];
 
   TestBed.configureTestingModule({
@@ -61,7 +73,10 @@ function configure(available: Entity[]): Setup {
       ...translationProviders,
       { provide: Router, useValue: { navigate: vi.fn() } },
       { provide: ActivatedRoute, useValue: {} },
-      { provide: EntitySchemaManager, useValue: { getEntitySchema: () => of({ schema }) } },
+      {
+        provide: EntitySchemaManager,
+        useValue: { getEntitySchema: () => of({ schema: withDisplayColumn }) },
+      },
       {
         provide: EntityDataService,
         useValue: {
@@ -148,6 +163,27 @@ describe('EntitySchemaSection', () => {
     expect(columns.items['PrimaryDisplayValue'].expression.macrosType).toBe(
       QueryMacrosType.PRIMARY_DISPLAY_COLUMN,
     );
+  });
+
+  it('asks for no display value from a schema that names its records by nothing', async () => {
+    const { fixture, sent } = configure(rows(3), namelessSchema);
+
+    await open(fixture);
+
+    const columns = serialized(sent[0])['columns'] as unknown as {
+      items: Record<string, unknown>;
+    };
+    expect(columns.items['PrimaryDisplayValue']).toBeUndefined();
+    expect(Object.keys(columns.items)).toEqual(['Id', 'CreatedOn', 'ModifiedOn']);
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Название');
+  });
+
+  it('offers no search on a schema that names its records by nothing', async () => {
+    const { fixture } = configure(rows(3), namelessSchema);
+
+    await open(fixture);
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('input[type="search"]')).toBeNull();
   });
 
   it('takes the section title from the schema in the user language', async () => {

@@ -54,6 +54,8 @@ export interface EntitySchema {
 
   columns?: EntitySchemaColumns;
 
+  primaryDisplayColumnUId?: string;
+
   parentUId?: string;
 
   administratedByOperations?: boolean;
@@ -84,4 +86,11 @@ export function findSchemaColumn(
   name: string,
 ): EntitySchemaColumn | null {
   return getSchemaColumns(schema).find((column) => column.name === name) ?? null;
+}
+
+export function findPrimaryDisplayColumn(
+  schema: EntitySchema | null | undefined,
+): EntitySchemaColumn | null {
+  const uId: string | undefined = schema?.primaryDisplayColumnUId;
+  return uId ? (getSchemaColumns(schema).find((column) => column.uId === uId) ?? null) : null;
 }

@@ -1,24 +1,26 @@
 <h1 class="h4 mb-3">{{ caption() }}</h1>
 
-<div class="input-group input-group-sm search-box mb-3">
-  <input
-    type="search"
-    class="form-control"
-    [placeholder]="'sectionSearchPlaceholder' | translate"
-    [attr.aria-label]="'sectionSearchPlaceholder' | translate"
-    [value]="searchTerm()"
-    (input)="onSearchInput($event)"
-    (keydown.enter)="onSearchSubmit()"
-  />
-  <button type="button" class="btn btn-outline-dark" (click)="onSearchSubmit()">
-    {{ 'sectionSearchSubmit' | translate }}
-  </button>
-  @if (searchTerm() || search()) {
-    <button type="button" class="btn btn-outline-dark" (click)="onSearchClear()">
-      {{ 'sectionSearchClear' | translate }}
+@if (canSearch()) {
+  <div class="input-group input-group-sm search-box mb-3">
+    <input
+      type="search"
+      class="form-control"
+      [placeholder]="'sectionSearchPlaceholder' | translate"
+      [attr.aria-label]="'sectionSearchPlaceholder' | translate"
+      [value]="searchTerm()"
+      (input)="onSearchInput($event)"
+      (keydown.enter)="onSearchSubmit()"
+    />
+    <button type="button" class="btn btn-outline-dark" (click)="onSearchSubmit()">
+      {{ 'sectionSearchSubmit' | translate }}
     </button>
-  }
-</div>
+    @if (searchTerm() || search()) {
+      <button type="button" class="btn btn-outline-dark" (click)="onSearchClear()">
+        {{ 'sectionSearchClear' | translate }}
+      </button>
+    }
+  </div>
+}
 
 @if (loading()) {
   <div class="d-flex align-items-center gap-2 text-body-secondary" role="status">
