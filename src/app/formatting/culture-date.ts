@@ -2,6 +2,7 @@ import { formatDate } from '@angular/common';
 import { computed, inject, Service, Signal } from '@angular/core';
 import { DateTimeFormatSettings } from '@ep-crm/core';
 import { UserContextService } from '@ep-crm/devkit';
+import { toAngularDatePattern } from '@app/formatting/date-pattern';
 
 const defaultDatePattern: string = 'dd.MM.yyyy';
 
@@ -13,12 +14,12 @@ const formattingLocale: string = 'en-US';
 export class CultureDateService {
   private readonly userContext = inject(UserContextService);
 
-  readonly datePattern: Signal<string> = computed(
-    () => this.format()?.shortDatePattern || defaultDatePattern,
+  readonly datePattern: Signal<string> = computed(() =>
+    toAngularDatePattern(this.format()?.shortDatePattern || defaultDatePattern),
   );
 
-  readonly timePattern: Signal<string> = computed(
-    () => this.format()?.shortTimePattern || defaultTimePattern,
+  readonly timePattern: Signal<string> = computed(() =>
+    toAngularDatePattern(this.format()?.shortTimePattern || defaultTimePattern),
   );
 
   readonly dateTimePattern: Signal<string> = computed(
