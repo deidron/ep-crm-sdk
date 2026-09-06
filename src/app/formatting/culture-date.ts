@@ -1,14 +1,33 @@
 import { formatDate } from '@angular/common';
 import { computed, inject, Service, Signal } from '@angular/core';
-import { DateTimeFormatSettings } from '@ep-crm/core';
+import { DataValueType, DateTimeFormatSettings } from '@ep-crm/core';
 import { UserContextService } from '@ep-crm/devkit';
-import { toAngularDatePattern } from '@app/formatting/date-pattern';
+import { toAngularDatePattern, usesAmPmDesignator } from '@app/formatting/date-pattern';
 
 const defaultDatePattern: string = 'dd.MM.yyyy';
 
 const defaultTimePattern: string = 'HH:mm';
 
 const formattingLocale: string = 'en-US';
+
+const localeAmDesignator: string = 'AM';
+
+const localePmDesignator: string = 'PM';
+
+export type DateRenderMode = 'date' | 'time' | 'datetime';
+
+const renderModes: ReadonlyMap<DataValueType, DateRenderMode> = new Map<
+  DataValueType,
+  DateRenderMode
+>([
+  [DataValueType.DATE, 'date'],
+  [DataValueType.TIME, 'time'],
+  [DataValueType.DATE_TIME, 'datetime'],
+]);
+
+export function dateRenderMode(dataValueType: DataValueType): DateRenderMode | null {
+  return renderModes.get(dataValueType) ?? null;
+}
 
 @Service()
 export class CultureDateService {
@@ -26,15 +45,36 @@ export class CultureDateService {
     () => `${this.datePattern()} ${this.timePattern()}`,
   );
 
-  pattern(withTime: boolean): string {
-    return withTime ? this.dateTimePattern() : this.datePattern();
+  pattern(mode: DateRenderMode): string {
+    switch (mode) {
+      case 'date':
+        return this.datePattern();
+      case 'time':
+        return this.timePattern();
+      case 'datetime':
+        return this.dateTimePattern();
+    }
   }
 
-  render(value: unknown, withTime: boolean): string {
+  render(value: unknown, mode: DateRenderMode): string {
     if (!(value instanceof Date)) {
       return '';
     }
-    return formatDate(value, this.pattern(withTime), formattingLocale);
+    const pattern: string = this.pattern(mode);
+    return this.localizeDesignator(formatDate(value, pattern, formattingLocale), pattern, value);
+  }
+
+  private localizeDesignator(text: string, pattern: string, value: Date): string {
+    const format: DateTimeFormatSettings | null = this.format();
+    if (!format || !usesAmPmDesignator(pattern)) {
+      return text;
+    }
+    const beforeNoon: boolean = value.getHours() < 12;
+    const designator: string = beforeNoon ? format.amDesignator : format.pmDesignator;
+    if (!designator) {
+      return text;
+    }
+    return text.replace(beforeNoon ? localeAmDesignator : localePmDesignator, designator);
   }
 
   private format(): DateTimeFormatSettings | null {

@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   Component,
   computed,
@@ -28,7 +27,12 @@ import {
   SelectQuery,
 } from '@ep-crm/core';
 import { EntityDataService, EntitySchemaManager, UserContextService } from '@ep-crm/devkit';
-import { CultureDateService, translatedText } from '@app/formatting';
+import {
+  CultureDateService,
+  DateRenderMode,
+  dateRenderMode,
+  translatedText,
+} from '@app/formatting';
 
 const columnNames: readonly string[] = ['Id', 'CreatedOn', 'ModifiedOn'];
 
@@ -39,12 +43,12 @@ const pageSize: number = 10;
 interface SectionColumn {
   name: string;
   caption: string;
-  isDate: boolean;
+  dateMode: DateRenderMode | null;
 }
 
 @Component({
   selector: 'app-entity-schema-section',
-  imports: [DatePipe, TranslatePipe],
+  imports: [TranslatePipe],
   templateUrl: './entity-schema-section.html',
   styleUrl: './entity-schema-section.css',
 })
@@ -60,8 +64,6 @@ export class EntitySchemaSection {
   readonly schemaName: InputSignal<string | undefined> = input<string>();
 
   readonly pageSize: number = pageSize;
-
-  readonly dateTimePattern: Signal<string> = this.dates.dateTimePattern;
 
   readonly searchTerm: WritableSignal<string> = linkedSignal({
     source: () => this.schemaName(),
@@ -105,10 +107,7 @@ export class EntitySchemaSection {
       return {
         name,
         caption: column ? getLocalizedString(column.caption, culture) : name,
-        isDate: column
-          ? column.dataValueType === DataValueType.DATE_TIME ||
-            column.dataValueType === DataValueType.DATE
-          : false,
+        dateMode: column ? dateRenderMode(column.dataValueType) : null,
       };
     });
 
@@ -116,7 +115,7 @@ export class EntitySchemaSection {
       {
         name: displayColumnAlias,
         caption: translatedText(this.translate, 'sectionDisplayColumn'),
-        isDate: false,
+        dateMode: null,
       },
       ...columns,
     ];
@@ -176,8 +175,8 @@ export class EntitySchemaSection {
     void this.router.navigate(['edit', id], { relativeTo: this.route });
   }
 
-  asDate(value: unknown): Date | null {
-    return value instanceof Date ? value : null;
+  renderDate(value: unknown, mode: DateRenderMode): string {
+    return this.dates.render(value, mode);
   }
 
   private loadSchema(schemaName: string | undefined): Observable<EntitySchema | null> {

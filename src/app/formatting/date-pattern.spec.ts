@@ -1,5 +1,5 @@
 import { formatDate } from '@angular/common';
-import { toAngularDatePattern } from './date-pattern';
+import { toAngularDatePattern, usesAmPmDesignator } from './date-pattern';
 
 describe('toAngularDatePattern', () => {
   it('translates the AM/PM designator the platform reports for en-US', () => {
@@ -46,5 +46,21 @@ describe('toAngularDatePattern', () => {
     expect(formatDate(value, toAngularDatePattern('M/d/yyyy h:mm tt'), 'en-US')).toBe(
       '7/15/2019 8:02 PM',
     );
+  });
+});
+
+describe('usesAmPmDesignator', () => {
+  it('finds the designator the pattern renders', () => {
+    expect(usesAmPmDesignator('h:mm a')).toBe(true);
+    expect(usesAmPmDesignator('M/d/yyyy h:mm a')).toBe(true);
+  });
+
+  it('ignores a pattern that renders none', () => {
+    expect(usesAmPmDesignator('HH:mm')).toBe(false);
+    expect(usesAmPmDesignator('dd.MM.yyyy')).toBe(false);
+  });
+
+  it('ignores the letter inside a literal', () => {
+    expect(usesAmPmDesignator("HH:mm 'am'")).toBe(false);
   });
 });

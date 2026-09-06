@@ -88,9 +88,12 @@ export class UserProfile {
       { captionKey: 'profileFieldAccount', value: getLookupDisplayValue(contact['Account']) },
       {
         captionKey: 'profileFieldBirthDate',
-        value: this.dates.render(contact['BirthDate'], false),
+        value: this.dates.render(contact['BirthDate'], 'date'),
       },
-      { captionKey: 'profileFieldCreatedOn', value: this.dates.render(contact['CreatedOn'], true) },
+      {
+        captionKey: 'profileFieldCreatedOn',
+        value: this.dates.render(contact['CreatedOn'], 'datetime'),
+      },
 
       { captionKey: 'profileFieldCulture', value: this.userContext.currentCulture() },
     ];
@@ -100,7 +103,7 @@ export class UserProfile {
     this.profileResource.value().recentActivities.map((activity) => ({
       id: this.text(activity['Id']),
       title: this.text(activity['Title']),
-      startDate: this.dates.render(activity['StartDate'], true),
+      startDate: this.dates.render(activity['StartDate'], 'datetime'),
       status: getLookupDisplayValue(activity['Status']),
     })),
   );

@@ -52,8 +52,8 @@
           <tr>
             @for (column of columns(); track column.name) {
               <td [attr.data-label]="column.caption">
-                @if (column.isDate && asDate(row[column.name]); as date) {
-                  {{ date | date: dateTimePattern() }}
+                @if (column.dateMode) {
+                  {{ renderDate(row[column.name], column.dateMode) }}
                 } @else {
                   {{ row[column.name] }}
                 }

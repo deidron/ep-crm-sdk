@@ -1,13 +1,43 @@
-/**
- * The platform reports date and time patterns of its culture in the .NET syntax
- * (`CultureInfo.DateTimeFormat`), while `formatDate` from `@angular/common` reads the CLDR
- * one. The two overlap enough to look interchangeable — `M/d/yyyy` and `HH:mm` mean the
- * same in both — and then differ on the tokens that matter: .NET writes the AM/PM
- * designator as `tt`, which CLDR does not know at all and passes through as literal text.
- * Hence en-US arriving from the platform as `h:mm tt` and rendering as "8:02 tt".
- */
+type PatternSegment =
+  | { readonly kind: 'literal'; readonly text: string }
+  | { readonly kind: 'run'; readonly letter: string; readonly length: number };
 
-/** A run of one repeated pattern letter, translated to its CLDR counterpart. */
+function scanPattern(pattern: string): PatternSegment[] {
+  const segments: PatternSegment[] = [];
+  let index: number = 0;
+  while (index < pattern.length) {
+    const character: string = pattern[index];
+    if (character === "'") {
+      const closing: number = pattern.indexOf("'", index + 1);
+      const end: number = closing === -1 ? pattern.length : closing + 1;
+      segments.push({ kind: 'literal', text: pattern.slice(index, end) });
+      index = end;
+      continue;
+    }
+    if (character === '\\') {
+      const escaped: string | undefined = pattern[index + 1];
+      segments.push({
+        kind: 'literal',
+        text: escaped === undefined ? '' : `'${escaped === "'" ? "''" : escaped}'`,
+      });
+      index += 2;
+      continue;
+    }
+    if (!/[a-zA-Z]/.test(character)) {
+      segments.push({ kind: 'literal', text: character });
+      index += 1;
+      continue;
+    }
+    let length: number = 1;
+    while (pattern[index + length] === character) {
+      length += 1;
+    }
+    segments.push({ kind: 'run', letter: character, length });
+    index += length;
+  }
+  return segments;
+}
+
 function translateRun(letter: string, length: number): string {
   switch (letter) {
     // AM/PM designator: `t`/`tt` in .NET, `a` in CLDR.
@@ -37,40 +67,14 @@ function translateRun(letter: string, length: number): string {
   }
 }
 
-/**
- * Translates a .NET date/time pattern into the one `formatDate` from `@angular/common`
- * understands. Text inside single quotes is a literal in both syntaxes and is copied as
- * is; a backslash escape, which CLDR has no notion of, becomes a quoted literal.
- */
 export function toAngularDatePattern(pattern: string): string {
-  let result: string = '';
-  let index: number = 0;
-  while (index < pattern.length) {
-    const character: string = pattern[index];
-    if (character === "'") {
-      const closing: number = pattern.indexOf("'", index + 1);
-      const end: number = closing === -1 ? pattern.length : closing + 1;
-      result += pattern.slice(index, end);
-      index = end;
-      continue;
-    }
-    if (character === '\\') {
-      const escaped: string | undefined = pattern[index + 1];
-      result += escaped === undefined ? '' : `'${escaped === "'" ? "''" : escaped}'`;
-      index += 2;
-      continue;
-    }
-    if (!/[a-zA-Z]/.test(character)) {
-      result += character;
-      index += 1;
-      continue;
-    }
-    let length: number = 1;
-    while (pattern[index + length] === character) {
-      length += 1;
-    }
-    result += translateRun(character, length);
-    index += length;
-  }
-  return result;
+  return scanPattern(pattern)
+    .map((segment) =>
+      segment.kind === 'literal' ? segment.text : translateRun(segment.letter, segment.length),
+    )
+    .join('');
+}
+
+export function usesAmPmDesignator(pattern: string): boolean {
+  return scanPattern(pattern).some((segment) => segment.kind === 'run' && segment.letter === 'a');
 }
