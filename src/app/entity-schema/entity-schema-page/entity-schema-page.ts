@@ -249,11 +249,7 @@ export class EntitySchemaPage {
     changed.forEach((field) =>
       query.setParameterValue(
         field.name,
-        this.toParameterValue(
-          this.draftState()[field.name],
-          field.editor,
-          this.recordResource.value()?.[field.name] ?? null,
-        ),
+        this.toParameterValue(this.draftState()[field.name], field.editor),
         field.dataValueType,
       ),
     );
@@ -334,21 +330,19 @@ export class EntitySchemaPage {
     return typeof value === 'object' ? '' : String(value);
   }
 
-  private toTimeValue(raw: string, current: EntityColumnValue): ParameterValueType {
+  private toTimeValue(raw: string): ParameterValueType {
     const [hours, minutes] = raw.split(':').map(Number);
     if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
       return null;
     }
-    const value: Date = current instanceof Date ? new Date(current) : new Date();
+    // A Time column is a SQL time: the platform drops the day and hands the value back
+    // stamped with the current one, which is what the day put here becomes anyway.
+    const value: Date = new Date();
     value.setHours(hours, minutes, 0, 0);
     return value;
   }
 
-  private toParameterValue(
-    raw: string,
-    editor: EditorType | null,
-    current: EntityColumnValue,
-  ): ParameterValueType {
+  private toParameterValue(raw: string, editor: EditorType | null): ParameterValueType {
     if (editor === 'boolean') {
       return raw === 'true';
     }
@@ -360,7 +354,7 @@ export class EntitySchemaPage {
       return Number.isFinite(value) ? value : null;
     }
     if (editor === 'time') {
-      return this.toTimeValue(raw, current);
+      return this.toTimeValue(raw);
     }
     if (editor === 'date' || editor === 'datetime') {
       const value: Date = new Date(raw);
