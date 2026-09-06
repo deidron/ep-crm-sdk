@@ -1,14 +1,23 @@
 :host {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   min-height: 100vh;
   padding: 1rem;
 }
 
+/* The auto margins take the whole free height and split it above and below the form, which
+   leaves the copyright at the bottom of the screen instead of letting it drag the form up:
+   as a member of the centred group it pulled the eye off centre by half its own height. */
 .form-signin {
   width: 100%;
   max-width: 330px;
+  margin: auto 0;
+}
+
+.copyright {
+  margin: 0;
+  padding-top: 1rem;
 }
 
 .logo-image {
