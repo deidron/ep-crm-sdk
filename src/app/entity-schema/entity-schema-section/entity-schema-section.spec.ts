@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -58,14 +58,24 @@ function rows(count: number): Entity[] {
   }));
 }
 
+interface UserInfoStub {
+  cultureInfo: { dateTimeFormat: { shortDatePattern: string; shortTimePattern: string } };
+}
+
+function userInfoWith(shortDatePattern: string): UserInfoStub {
+  return { cultureInfo: { dateTimeFormat: { shortDatePattern, shortTimePattern: 'HH:mm' } } };
+}
+
 interface Setup {
   fixture: ComponentFixture<EntitySchemaSection>;
 
   sent: SelectQuery[];
+  userInfo: WritableSignal<UserInfoStub>;
 }
 
 function configure(available: Entity[], withDisplayColumn: EntitySchema = schema): Setup {
   const sent: SelectQuery[] = [];
+  const userInfo: WritableSignal<UserInfoStub> = signal(userInfoWith('yyyy-MM-dd'));
 
   TestBed.configureTestingModule({
     imports: [EntitySchemaSection],
@@ -88,14 +98,7 @@ function configure(available: Entity[], withDisplayColumn: EntitySchema = schema
       },
       {
         provide: UserContextService,
-        useValue: {
-          currentCulture: signal('ru-RU'),
-          userInfo: signal({
-            cultureInfo: {
-              dateTimeFormat: { shortDatePattern: 'yyyy-MM-dd', shortTimePattern: 'HH:mm' },
-            },
-          }),
-        },
+        useValue: { currentCulture: signal('ru-RU'), userInfo },
       },
     ],
   });
@@ -104,7 +107,7 @@ function configure(available: Entity[], withDisplayColumn: EntitySchema = schema
   const fixture: ComponentFixture<EntitySchemaSection> =
     TestBed.createComponent(EntitySchemaSection);
   fixture.componentRef.setInput('schemaName', 'Contact');
-  return { fixture, sent };
+  return { fixture, sent, userInfo };
 }
 
 async function open(fixture: ComponentFixture<EntitySchemaSection>): Promise<void> {
@@ -294,5 +297,24 @@ describe('EntitySchemaSection', () => {
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('2026-02-01 13:45');
     expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('01.02.2026');
+  });
+
+  it('re-renders the dates when the culture changes under a mounted grid', async () => {
+    const { fixture, userInfo } = configure(rows(1));
+    await open(fixture);
+
+    userInfo.set(userInfoWith('dd.MM.yyyy'));
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('01.02.2026 13:45');
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('2026-02-01');
+  });
+
+  it('shows a value a date column holds that is not a date', async () => {
+    const { fixture } = configure([{ Id: 'r1', PrimaryDisplayValue: 'Record', CreatedOn: 'oops' }]);
+
+    await open(fixture);
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('oops');
   });
 });

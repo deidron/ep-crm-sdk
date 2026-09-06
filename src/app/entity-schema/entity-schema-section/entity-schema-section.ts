@@ -18,6 +18,7 @@ import {
   DateRenderMode,
   dateRenderMode,
   Entity,
+  EntityColumnValue,
   EntitySchema,
   EntitySchemaColumn,
   FilterUtils,
@@ -47,6 +48,18 @@ interface SectionColumn {
   name: string;
   caption: string;
   dateMode: DateRenderMode | null;
+}
+
+interface SectionCell {
+  name: string;
+  caption: string;
+  text: string;
+}
+
+interface SectionRow {
+  id: string;
+  entity: Entity;
+  cells: SectionCell[];
 }
 
 @Component({
@@ -144,6 +157,19 @@ export class EntitySchemaSection {
 
   readonly rows: Signal<Entity[]> = computed(() => this.pageResource.value().slice(0, pageSize));
 
+  readonly renderedRows: Signal<SectionRow[]> = computed(() => {
+    const columns: SectionColumn[] = this.columns();
+    return this.rows().map((entity) => ({
+      id: typeof entity['Id'] === 'string' ? entity['Id'] : '',
+      entity,
+      cells: columns.map((column) => ({
+        name: column.name,
+        caption: column.caption,
+        text: this.renderCell(entity[column.name], column.dateMode),
+      })),
+    }));
+  });
+
   readonly loading: Signal<boolean> = computed(
     () => this.schemaResource.isLoading() || this.pageResource.isLoading(),
   );
@@ -198,8 +224,11 @@ export class EntitySchemaSection {
     void this.router.navigate(['edit', id], { relativeTo: this.route });
   }
 
-  renderDate(value: unknown, mode: DateRenderMode): string {
-    return this.dates.render(value, mode);
+  private renderCell(value: EntityColumnValue, mode: DateRenderMode | null): string {
+    if (mode && value instanceof Date) {
+      return this.dates.render(value, mode);
+    }
+    return typeof value === 'object' || value === undefined ? '' : String(value);
   }
 
   private loadSchema(schemaName: string | undefined): Observable<EntitySchema | null> {

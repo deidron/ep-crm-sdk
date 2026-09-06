@@ -50,19 +50,17 @@
         </tr>
       </thead>
       <tbody>
-        @for (row of rows(); track row['Id']) {
+        @for (row of renderedRows(); track row.id) {
           <tr>
-            @for (column of columns(); track column.name) {
-              <td [attr.data-label]="column.caption">
-                @if (column.dateMode) {
-                  {{ renderDate(row[column.name], column.dateMode) }}
-                } @else {
-                  {{ row[column.name] }}
-                }
-              </td>
+            @for (cell of row.cells; track cell.name) {
+              <td [attr.data-label]="cell.caption">{{ cell.text }}</td>
             }
             <td class="text-end row-actions">
-              <button type="button" class="btn btn-outline-dark btn-sm" (click)="openPage(row)">
+              <button
+                type="button"
+                class="btn btn-outline-dark btn-sm"
+                (click)="openPage(row.entity)"
+              >
                 {{ 'sectionOpen' | translate }}
               </button>
             </td>
