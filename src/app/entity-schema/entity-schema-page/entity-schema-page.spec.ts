@@ -48,6 +48,7 @@ const schema: EntitySchema = {
       name: column('Name', DataValueType.TEXT),
       confirmed: column('Confirmed', DataValueType.BOOLEAN),
       owner: column('Owner', DataValueType.LOOKUP),
+      from: column('From', DataValueType.TIME),
     },
   },
 } as unknown as EntitySchema;
@@ -56,6 +57,7 @@ const record: Entity = {
   Name: 'John Smith',
   Confirmed: false,
   Owner: { value: 'o1', displayValue: 'Peter Brown' },
+  From: new Date(2019, 6, 15, 8, 2),
 };
 
 const allRights: EntityRights = {
@@ -177,6 +179,43 @@ describe('EntitySchemaPage', () => {
     expect(host(fixture).querySelector('input#field-Name')).not.toBeNull();
     expect(host(fixture).querySelector('input#field-Owner')).toBeNull();
     expect(host(fixture).querySelector('#field-Owner')!.textContent).toContain('Peter Brown');
+  });
+
+  it('shows a time column without the day it is stored with', async () => {
+    const { fixture } = configure(allRights);
+
+    await open(fixture);
+
+    const text: string = host(fixture).textContent ?? '';
+    expect(text).toContain('08:02');
+    expect(text).not.toContain('2019');
+  });
+
+  it('sends the edited time of a time column', async () => {
+    const { fixture, sent } = configure(allRights);
+    await open(fixture);
+
+    button(fixture, 'Изменить')!.click();
+    fixture.detectChanges();
+
+    const input = host(fixture).querySelector<HTMLInputElement>('input#field-From')!;
+    expect(input.type).toBe('time');
+    expect(input.value).toBe('08:02');
+
+    input.value = '09:30';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    button(fixture, 'Сохранить')!.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const values = columnValues(sent[0]);
+    expect(Object.keys(values)).toEqual(['From']);
+    // The day is whatever the platform would stamp on it anyway, so only the time is fixed.
+    expect(values['From']['parameter']).toMatchObject({
+      value: expect.stringMatching(/^"\d{4}-\d{2}-\d{2}T09:30:00\.000"$/) as unknown as string,
+    });
   });
 
   it('sends only the touched columns in the update and re-reads the record', async () => {

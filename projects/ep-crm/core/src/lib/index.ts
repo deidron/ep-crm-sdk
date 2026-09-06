@@ -1,6 +1,7 @@
 // Data queries
 export * from './data-queries';
 export * from './types/data-value-type';
+export * from './types/date-render-mode';
 export * from './types/platform-name';
 
 // Transport contracts
@@ -35,6 +36,7 @@ export * from './routing/service-url-builder';
 export * from './user/user-info';
 export * from './user/user-info-response';
 export * from './user/culture-settings';
+export * from './user/date-pattern';
 export * from './localization/localizable-string';
 
 // Utilities

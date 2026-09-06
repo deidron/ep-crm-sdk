@@ -1,24 +1,26 @@
 <h1 class="h4 mb-3">{{ caption() }}</h1>
 
-<div class="input-group input-group-sm search-box mb-3">
-  <input
-    type="search"
-    class="form-control"
-    [placeholder]="'sectionSearchPlaceholder' | translate"
-    [attr.aria-label]="'sectionSearchPlaceholder' | translate"
-    [value]="searchTerm()"
-    (input)="onSearchInput($event)"
-    (keydown.enter)="onSearchSubmit()"
-  />
-  <button type="button" class="btn btn-outline-dark" (click)="onSearchSubmit()">
-    {{ 'sectionSearchSubmit' | translate }}
-  </button>
-  @if (searchTerm() || search()) {
-    <button type="button" class="btn btn-outline-dark" (click)="onSearchClear()">
-      {{ 'sectionSearchClear' | translate }}
+@if (canSearch()) {
+  <div class="input-group input-group-sm search-box mb-3">
+    <input
+      type="search"
+      class="form-control"
+      [placeholder]="'sectionSearchPlaceholder' | translate"
+      [attr.aria-label]="'sectionSearchPlaceholder' | translate"
+      [value]="searchTerm()"
+      (input)="onSearchInput($event)"
+      (keydown.enter)="onSearchSubmit()"
+    />
+    <button type="button" class="btn btn-outline-dark" (click)="onSearchSubmit()">
+      {{ 'sectionSearchSubmit' | translate }}
     </button>
-  }
-</div>
+    @if (searchTerm() || search()) {
+      <button type="button" class="btn btn-outline-dark" (click)="onSearchClear()">
+        {{ 'sectionSearchClear' | translate }}
+      </button>
+    }
+  </div>
+}
 
 @if (loading()) {
   <div class="d-flex align-items-center gap-2 text-body-secondary" role="status">
@@ -48,19 +50,17 @@
         </tr>
       </thead>
       <tbody>
-        @for (row of rows(); track row['Id']) {
+        @for (row of renderedRows(); track row.id) {
           <tr>
-            @for (column of columns(); track column.name) {
-              <td [attr.data-label]="column.caption">
-                @if (column.isDate && asDate(row[column.name]); as date) {
-                  {{ date | date: dateTimePattern() }}
-                } @else {
-                  {{ row[column.name] }}
-                }
-              </td>
+            @for (cell of row.cells; track cell.name) {
+              <td [attr.data-label]="cell.caption">{{ cell.text }}</td>
             }
             <td class="text-end row-actions">
-              <button type="button" class="btn btn-outline-dark btn-sm" (click)="openPage(row)">
+              <button
+                type="button"
+                class="btn btn-outline-dark btn-sm"
+                (click)="openPage(row.entity)"
+              >
                 {{ 'sectionOpen' | translate }}
               </button>
             </td>

@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   Component,
   computed,
@@ -16,10 +15,14 @@ import { catchError, map, Observable, of } from 'rxjs';
 import {
   ComparisonType,
   DataValueType,
+  DateRenderMode,
+  dateRenderMode,
   Entity,
+  EntityColumnValue,
   EntitySchema,
   EntitySchemaColumn,
   FilterUtils,
+  findPrimaryDisplayColumn,
   findSchemaColumn,
   getLocalizedString,
   MacrosFunctionColumn,
@@ -27,8 +30,13 @@ import {
   QueryMacrosType,
   SelectQuery,
 } from '@ep-crm/core';
-import { EntityDataService, EntitySchemaManager, UserContextService } from '@ep-crm/devkit';
-import { CultureDateService, translatedText } from '@app/formatting';
+import {
+  CultureDateService,
+  EntityDataService,
+  EntitySchemaManager,
+  UserContextService,
+} from '@ep-crm/devkit';
+import { translatedText } from '@app/translated-text';
 
 const columnNames: readonly string[] = ['Id', 'CreatedOn', 'ModifiedOn'];
 
@@ -39,12 +47,24 @@ const pageSize: number = 10;
 interface SectionColumn {
   name: string;
   caption: string;
-  isDate: boolean;
+  dateMode: DateRenderMode | null;
+}
+
+interface SectionCell {
+  name: string;
+  caption: string;
+  text: string;
+}
+
+interface SectionRow {
+  id: string;
+  entity: Entity;
+  cells: SectionCell[];
 }
 
 @Component({
   selector: 'app-entity-schema-section',
-  imports: [DatePipe, TranslatePipe],
+  imports: [TranslatePipe],
   templateUrl: './entity-schema-section.html',
   styleUrl: './entity-schema-section.css',
 })
@@ -60,8 +80,6 @@ export class EntitySchemaSection {
   readonly schemaName: InputSignal<string | undefined> = input<string>();
 
   readonly pageSize: number = pageSize;
-
-  readonly dateTimePattern: Signal<string> = this.dates.dateTimePattern;
 
   readonly searchTerm: WritableSignal<string> = linkedSignal({
     source: () => this.schemaName(),
@@ -84,9 +102,24 @@ export class EntitySchemaSection {
     defaultValue: null as EntitySchema | null,
   });
 
+  private readonly hasDisplayColumn: Signal<boolean> = computed(
+    () => findPrimaryDisplayColumn(this.schemaResource.value()) !== null,
+  );
+
+  readonly canSearch: Signal<boolean> = this.hasDisplayColumn;
+
   private readonly pageResource = rxResource({
-    params: () => ({ schemaName: this.schemaName(), page: this.page(), search: this.search() }),
-    stream: ({ params }) => this.loadPage(params.schemaName, params.page, params.search),
+    params: () => ({
+      schemaName: this.schemaName(),
+      page: this.page(),
+      search: this.search(),
+      withDisplayColumn: this.hasDisplayColumn(),
+      schemaLoading: this.schemaResource.isLoading(),
+    }),
+    stream: ({ params }) =>
+      params.schemaLoading
+        ? of([])
+        : this.loadPage(params.schemaName, params.page, params.search, params.withDisplayColumn),
     defaultValue: [] as Entity[],
   });
 
@@ -105,18 +138,18 @@ export class EntitySchemaSection {
       return {
         name,
         caption: column ? getLocalizedString(column.caption, culture) : name,
-        isDate: column
-          ? column.dataValueType === DataValueType.DATE_TIME ||
-            column.dataValueType === DataValueType.DATE
-          : false,
+        dateMode: column ? dateRenderMode(column.dataValueType) : null,
       };
     });
 
+    if (!this.hasDisplayColumn()) {
+      return columns;
+    }
     return [
       {
         name: displayColumnAlias,
         caption: translatedText(this.translate, 'sectionDisplayColumn'),
-        isDate: false,
+        dateMode: null,
       },
       ...columns,
     ];
@@ -124,7 +157,22 @@ export class EntitySchemaSection {
 
   readonly rows: Signal<Entity[]> = computed(() => this.pageResource.value().slice(0, pageSize));
 
-  readonly loading: Signal<boolean> = this.pageResource.isLoading;
+  readonly renderedRows: Signal<SectionRow[]> = computed(() => {
+    const columns: SectionColumn[] = this.columns();
+    return this.rows().map((entity) => ({
+      id: typeof entity['Id'] === 'string' ? entity['Id'] : '',
+      entity,
+      cells: columns.map((column) => ({
+        name: column.name,
+        caption: column.caption,
+        text: this.renderCell(entity[column.name], column.dateMode),
+      })),
+    }));
+  });
+
+  readonly loading: Signal<boolean> = computed(
+    () => this.schemaResource.isLoading() || this.pageResource.isLoading(),
+  );
 
   readonly errorMessage: Signal<string | null> = computed(() => {
     const error: unknown = this.pageResource.error();
@@ -176,8 +224,11 @@ export class EntitySchemaSection {
     void this.router.navigate(['edit', id], { relativeTo: this.route });
   }
 
-  asDate(value: unknown): Date | null {
-    return value instanceof Date ? value : null;
+  private renderCell(value: EntityColumnValue, mode: DateRenderMode | null): string {
+    if (mode && value instanceof Date) {
+      return this.dates.render(value, mode);
+    }
+    return typeof value === 'object' || value === undefined ? '' : String(value);
   }
 
   private loadSchema(schemaName: string | undefined): Observable<EntitySchema | null> {
@@ -195,18 +246,21 @@ export class EntitySchemaSection {
     schemaName: string | undefined,
     page: number,
     search: string,
+    withDisplayColumn: boolean,
   ): Observable<Entity[]> {
     if (!schemaName) {
       return of([]);
     }
     const query: SelectQuery = new SelectQuery(schemaName);
     columnNames.forEach((column) => query.addColumn(column, column));
-    query.addQueryColumn(
-      new MacrosFunctionColumn(QueryMacrosType.PRIMARY_DISPLAY_COLUMN),
-      displayColumnAlias,
-    );
+    if (withDisplayColumn) {
+      query.addQueryColumn(
+        new MacrosFunctionColumn(QueryMacrosType.PRIMARY_DISPLAY_COLUMN),
+        displayColumnAlias,
+      );
+    }
     query.columns.collection.get('CreatedOn')?.withOrdering(OrderDirection.DESC, 0);
-    if (search) {
+    if (search && withDisplayColumn) {
       query.addFilter(
         'searchFilter',
         FilterUtils.createPrimaryDisplayColumnFilterWithParameter(

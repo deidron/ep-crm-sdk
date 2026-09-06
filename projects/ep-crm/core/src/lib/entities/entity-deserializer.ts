@@ -26,6 +26,7 @@ function parseColumnValue(
 ): EntityColumnValue {
   switch (dataValueType) {
     case DataValueType.DATE:
+    case DataValueType.TIME:
     case DataValueType.DATE_TIME:
       return typeof value === 'string' ? parseDate(value) : value;
     default:

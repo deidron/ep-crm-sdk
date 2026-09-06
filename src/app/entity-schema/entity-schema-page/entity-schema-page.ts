@@ -17,6 +17,8 @@ import { catchError, map, Observable, of } from 'rxjs';
 import {
   BaseQueryResponse,
   DataValueType,
+  DateRenderMode,
+  dateRenderMode,
   Entity,
   EntityColumnValue,
   EntityRights,
@@ -29,8 +31,9 @@ import {
   SelectQuery,
   UpdateQuery,
 } from '@ep-crm/core';
-import { CultureDateService, translatedText } from '@app/formatting';
+import { translatedText } from '@app/translated-text';
 import {
+  CultureDateService,
   EntityDataService,
   EntitySchemaManager,
   QueryExecutor,
@@ -57,7 +60,7 @@ const notDisplayableTypes: ReadonlySet<DataValueType> = new Set([
 
 const ownColumnUsageType: number = 0;
 
-type EditorType = 'text' | 'textarea' | 'number' | 'date' | 'datetime' | 'boolean';
+type EditorType = 'text' | 'textarea' | 'number' | 'date' | 'time' | 'datetime' | 'boolean';
 
 const editorTypes: ReadonlyMap<DataValueType, EditorType> = new Map<DataValueType, EditorType>([
   [DataValueType.TEXT, 'text'],
@@ -74,9 +77,16 @@ const editorTypes: ReadonlyMap<DataValueType, EditorType> = new Map<DataValueTyp
   [DataValueType.FLOAT4, 'number'],
   [DataValueType.FLOAT8, 'number'],
   [DataValueType.DATE, 'date'],
+  [DataValueType.TIME, 'time'],
   [DataValueType.DATE_TIME, 'datetime'],
   [DataValueType.BOOLEAN, 'boolean'],
 ]);
+
+const editorValuePatterns: Readonly<Record<DateRenderMode, string>> = {
+  date: 'yyyy-MM-dd',
+  time: 'HH:mm',
+  datetime: "yyyy-MM-dd'T'HH:mm",
+};
 
 const noRights: EntityRights = {
   canRead: false,
@@ -314,9 +324,22 @@ export class EntitySchemaPage {
       return '';
     }
     if (value instanceof Date) {
-      return formatDate(value, editor === 'date' ? 'yyyy-MM-dd' : "yyyy-MM-dd'T'HH:mm", 'en-US');
+      const mode: DateRenderMode = editor === 'date' || editor === 'time' ? editor : 'datetime';
+      return formatDate(value, editorValuePatterns[mode], 'en-US');
     }
     return typeof value === 'object' ? '' : String(value);
+  }
+
+  private toTimeValue(raw: string): ParameterValueType {
+    const [hours, minutes] = raw.split(':').map(Number);
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+      return null;
+    }
+    // A Time column is a SQL time: the platform drops the day and hands the value back
+    // stamped with the current one, which is what the day put here becomes anyway.
+    const value: Date = new Date();
+    value.setHours(hours, minutes, 0, 0);
+    return value;
   }
 
   private toParameterValue(raw: string, editor: EditorType | null): ParameterValueType {
@@ -329,6 +352,9 @@ export class EntitySchemaPage {
     if (editor === 'number') {
       const value: number = Number(raw);
       return Number.isFinite(value) ? value : null;
+    }
+    if (editor === 'time') {
+      return this.toTimeValue(raw);
     }
     if (editor === 'date' || editor === 'datetime') {
       const value: Date = new Date(raw);
@@ -367,7 +393,7 @@ export class EntitySchemaPage {
       return getLookupDisplayValue(value);
     }
     if (value instanceof Date) {
-      return this.dates.render(value, dataValueType !== DataValueType.DATE);
+      return this.dates.render(value, dateRenderMode(dataValueType) ?? 'datetime');
     }
     if (typeof value === 'boolean') {
       return translatedText(this.translate, value ? 'commonYes' : 'commonNo');
