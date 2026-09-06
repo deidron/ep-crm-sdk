@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { DataValueType, DateTimeFormatSettings } from '@ep-crm/core';
-import { UserContextService } from '@ep-crm/devkit';
-import { CultureDateService, dateRenderMode } from './culture-date';
+import { DateTimeFormatSettings, toCldrDatePattern } from '@ep-crm/core';
+import { UserContextService } from '../user-context';
+import { CultureDateService } from './culture-date';
 
 const enUs: DateTimeFormatSettings = {
   dateSeparator: '/',
@@ -40,19 +40,6 @@ function configure(dateTimeFormat: DateTimeFormatSettings | null): CultureDateSe
   return TestBed.inject(CultureDateService);
 }
 
-describe('dateRenderMode', () => {
-  it('maps each of the platform types that carry a moment in time', () => {
-    expect(dateRenderMode(DataValueType.DATE)).toBe('date');
-    expect(dateRenderMode(DataValueType.TIME)).toBe('time');
-    expect(dateRenderMode(DataValueType.DATE_TIME)).toBe('datetime');
-  });
-
-  it('leaves the types that carry none unmapped', () => {
-    expect(dateRenderMode(DataValueType.TEXT)).toBeNull();
-    expect(dateRenderMode(DataValueType.LOOKUP)).toBeNull();
-  });
-});
-
 describe('CultureDateService', () => {
   it('renders a time on its own, without the date half', () => {
     const dates: CultureDateService = configure(ruRu);
@@ -87,6 +74,12 @@ describe('CultureDateService', () => {
     const value: Date = new Date(2019, 6, 15, 8, 2);
     expect(dates.render(value, 'date')).toBe('15.07.2019');
     expect(dates.render(value, 'time')).toBe('08:02');
+  });
+
+  it('renders a translated pattern without leaking pattern letters', () => {
+    const dates: CultureDateService = configure(enUs);
+    expect(toCldrDatePattern('h:mm tt')).toBe('h:mm a');
+    expect(dates.render(new Date(2019, 6, 15, 20, 2), 'datetime')).toBe('7/15/2019 8:02 PM');
   });
 
   it('renders anything that is not a date as nothing', () => {

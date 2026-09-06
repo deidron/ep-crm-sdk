@@ -10,6 +10,7 @@ export * from './services/business-process';
 export * from './services/grid-utilities';
 export * from './services/entity-schema-manager';
 export * from './services/entity-data';
+export * from './services/culture-date';
 export * from './platform-global';
 export * from './platform-name';
 export * from './session-probe';

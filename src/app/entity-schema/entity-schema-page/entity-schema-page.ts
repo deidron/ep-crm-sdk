@@ -17,6 +17,8 @@ import { catchError, map, Observable, of } from 'rxjs';
 import {
   BaseQueryResponse,
   DataValueType,
+  DateRenderMode,
+  dateRenderMode,
   Entity,
   EntityColumnValue,
   EntityRights,
@@ -29,13 +31,9 @@ import {
   SelectQuery,
   UpdateQuery,
 } from '@ep-crm/core';
+import { translatedText } from '@app/translated-text';
 import {
   CultureDateService,
-  DateRenderMode,
-  dateRenderMode,
-  translatedText,
-} from '@app/formatting';
-import {
   EntityDataService,
   EntitySchemaManager,
   QueryExecutor,

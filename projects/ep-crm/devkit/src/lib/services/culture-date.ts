@@ -1,8 +1,8 @@
 import { formatDate } from '@angular/common';
 import { computed, inject, Service, Signal } from '@angular/core';
-import { DataValueType, DateTimeFormatSettings } from '@ep-crm/core';
-import { UserContextService } from '@ep-crm/devkit';
-import { toAngularDatePattern, usesAmPmDesignator } from '@app/formatting/date-pattern';
+import { DateRenderMode, DateTimeFormatSettings } from '@ep-crm/core';
+import { toCldrDatePattern, usesAmPmDesignator } from '@ep-crm/core';
+import { UserContextService } from '../user-context';
 
 const defaultDatePattern: string = 'dd.MM.yyyy';
 
@@ -14,31 +14,16 @@ const localeAmDesignator: string = 'AM';
 
 const localePmDesignator: string = 'PM';
 
-export type DateRenderMode = 'date' | 'time' | 'datetime';
-
-const renderModes: ReadonlyMap<DataValueType, DateRenderMode> = new Map<
-  DataValueType,
-  DateRenderMode
->([
-  [DataValueType.DATE, 'date'],
-  [DataValueType.TIME, 'time'],
-  [DataValueType.DATE_TIME, 'datetime'],
-]);
-
-export function dateRenderMode(dataValueType: DataValueType): DateRenderMode | null {
-  return renderModes.get(dataValueType) ?? null;
-}
-
 @Service()
 export class CultureDateService {
   private readonly userContext = inject(UserContextService);
 
   readonly datePattern: Signal<string> = computed(() =>
-    toAngularDatePattern(this.format()?.shortDatePattern || defaultDatePattern),
+    toCldrDatePattern(this.format()?.shortDatePattern || defaultDatePattern),
   );
 
   readonly timePattern: Signal<string> = computed(() =>
-    toAngularDatePattern(this.format()?.shortTimePattern || defaultTimePattern),
+    toCldrDatePattern(this.format()?.shortTimePattern || defaultTimePattern),
   );
 
   readonly dateTimePattern: Signal<string> = computed(

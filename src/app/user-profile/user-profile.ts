@@ -14,8 +14,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, Observable } from 'rxjs';
 import { Entity, EntityColumnValue, getLookupDisplayValue } from '@ep-crm/core';
-import { UserContextService } from '@ep-crm/devkit';
-import { CultureDateService } from '@app/formatting';
+import { CultureDateService, UserContextService } from '@ep-crm/devkit';
 import { UserProfileData } from '@app/user-profile/user-profile-data.model';
 import { UserProfileStore } from '@app/user-profile/user-profile-store';
 

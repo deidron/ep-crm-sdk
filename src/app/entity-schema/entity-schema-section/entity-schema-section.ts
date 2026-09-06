@@ -15,6 +15,8 @@ import { catchError, map, Observable, of } from 'rxjs';
 import {
   ComparisonType,
   DataValueType,
+  DateRenderMode,
+  dateRenderMode,
   Entity,
   EntitySchema,
   EntitySchemaColumn,
@@ -27,13 +29,13 @@ import {
   QueryMacrosType,
   SelectQuery,
 } from '@ep-crm/core';
-import { EntityDataService, EntitySchemaManager, UserContextService } from '@ep-crm/devkit';
 import {
   CultureDateService,
-  DateRenderMode,
-  dateRenderMode,
-  translatedText,
-} from '@app/formatting';
+  EntityDataService,
+  EntitySchemaManager,
+  UserContextService,
+} from '@ep-crm/devkit';
+import { translatedText } from '@app/translated-text';
 
 const columnNames: readonly string[] = ['Id', 'CreatedOn', 'ModifiedOn'];
 

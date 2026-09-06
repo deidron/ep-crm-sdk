@@ -67,7 +67,7 @@ function translateRun(letter: string, length: number): string {
   }
 }
 
-export function toAngularDatePattern(pattern: string): string {
+export function toCldrDatePattern(pattern: string): string {
   return scanPattern(pattern)
     .map((segment) =>
       segment.kind === 'literal' ? segment.text : translateRun(segment.letter, segment.length),
