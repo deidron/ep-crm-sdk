@@ -63,6 +63,15 @@ and `reopened`: renaming a pull request re-runs the check.
 Every commit in the pull request is validated as well, so a branch with a malformed commit
 fails CI even when its title is right.
 
+Mind `gh pr create --fill` on a branch of several commits: it takes the title from the
+commit only when there is exactly one, and falls back to the branch name otherwise, which
+turns `fix/culture-date-rendering` into `fix/culture date rendering` — no colon, no type,
+red CI. Pass the title yourself, the body still fills from the commits:
+
+```bash
+gh pr create --base main --fill --title "fix: render date and time columns in the user culture"
+```
+
 `CI Success` is the single required status check. It aggregates the other jobs — adding or
 renaming a job means updating `needs`, not the ruleset.
 

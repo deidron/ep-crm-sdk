@@ -80,8 +80,8 @@ builds and for the devkit test suite — see [Tests](#tests-and-the-quality-gate
 ## Project layout
 
 ```
-projects/ep-crm/core     @ep-crm/core     — protocol, queries, parsing (no framework)
-projects/ep-crm/devkit   @ep-crm/devkit   — Angular services over core
+projects/ep-crm/core     @ep-crm/core     — protocol, queries, parsing, date patterns (no framework)
+projects/ep-crm/devkit   @ep-crm/devkit   — Angular services over core, culture-aware date rendering
 probe                    ep-crm-probe     — diagnostic bundle for a live platform page
 src                      ep-crm-demo      — the demo application
   app/authorization      sign-in, login guard, route matching
@@ -90,7 +90,6 @@ src                      ep-crm-demo      — the demo application
   app/user-profile       profile page and its store
   app/config             service routes, proxy URL provider, platform interceptor
   app/errors             error pages
-  app/formatting         culture-aware dates, translated text
   app/loading            navigation and request loading indicators
   app/testing            shared test helpers (.testing.ts)
   environments           production / development / bpmsoft / terrasoft
@@ -232,8 +231,16 @@ pnpm build:probe
 
 [`@ngx-translate/core`](https://github.com/ngx-translate/core) with translations in
 `src/locale` (`en-US.json`, `ru-RU.json`), copied into `locale/` of the bundle and fetched
-by `TranslateHttpLoader`. A new language is a new file there plus its culture in
-`supportedCultures` (`src/app/app.config.ts`).
+by `TranslateHttpLoader`. A new language is a new file there, its culture in
+`supportedCultures`, and its locale data registered in `registerCultureData()` — all three
+in `src/app/app.config.ts`.
+
+That last step is not optional. Date patterns come from the culture of the platform user,
+and one that spells a month or a day out (`MMMM`, `dddd`) makes `formatDate` reach for
+locale data that Angular ships for `en-US` alone; without `registerLocaleData` it throws
+rather than falling back. `CultureDateService` formats in the user culture when its data is
+registered and in `en-US` when it is not, so a stand reporting a culture the application
+does not carry degrades instead of breaking.
 
 The interface culture is the platform one while a session is open
 (`UserContextService.currentCulture()`), otherwise the first browser language that matches
