@@ -21,6 +21,10 @@ API names are platform-neutral: `PlatformUrlProvider`, `PlatformHost`, `Platform
 | `entities`       | `Entity`, `EntityColumnsConfig`, response-row parsing by `rowConfig`                                                       |
 | `services`       | contracts/query classes for platform services: rights, processes, bulk deletion, schemas, authentication                   |
 | `routing`        | `PlatformUrlProvider`, `ServiceRoute`                                                                                      |
+| `types`          | `DataValueType`, `PlatformName`, `DateRenderMode` and the value types it maps                                              |
+| `user`           | `UserInfo`, `CultureSettings`, `DateTimeFormatSettings`, translation of the culture's date patterns                        |
+| `localization`   | `LocalizableString`, `getLocalizedString`                                                                                  |
+| `exceptions`     | typed errors: argument, incomplete filters, unsupported type                                                               |
 | `utils`          | date encoding/parsing in the platform format, GUID helpers                                                                 |
 
 ## Example
@@ -58,7 +62,14 @@ The package builds the query and parses the response only. Sending is done by
 
 The platform sends dates as a string without a time zone, treated as local time.
 `toLocalISOString` and `parseDate` (in `utils`) follow that convention, including dates
-before 1970.
+before 1970. A `Time` column arrives as a whole moment as well: the platform stores the
+time alone and hands it back stamped with the current date, which it discards on write.
+
+Patterns of the user culture arrive in the .NET syntax (`CultureInfo.DateTimeFormat`),
+where the AM/PM designator is `tt` and a day name is `ddd`. `toCldrDatePattern` (in `user`)
+translates them into the Unicode syntax that renderers read — `formatDate` from
+`@angular/common` among them, which would otherwise pass `tt` through as literal text.
+`dateRenderMode` (in `types`) says which halves of a moment a value type carries.
 
 ## Public surface
 

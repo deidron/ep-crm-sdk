@@ -49,6 +49,7 @@ mode addresses from `workspaceBaseUrl` are absolute, so the header is not attach
 | `PlatformHost`         | runtime mode: standalone or embedded                                              |
 | `WorkspaceUrlProvider` | service addresses from `workspaceBaseUrl` (embedded mode)                         |
 | `UserContextService`   | current user and culture                                                          |
+| `CultureDateService`   | dates and times rendered in the patterns and language of the user culture         |
 | `services/`            | wrappers over platform services: rights, processes, bulk deletion, schema manager |
 
 ## Providers the application must supply
@@ -69,6 +70,13 @@ providers: [
   { provide: PlatformUrlProvider, useFactory: createUrlProvider, deps: [PlatformHost] },
 ];
 ```
+
+Locale data is not a token but is the application's job all the same.
+`CultureDateService` formats through `formatDate`, and Angular ships data for `en-US`
+alone, so every other supported culture needs `registerLocaleData` — otherwise a pattern
+that spells a month or a day out throws. The service formats in the user culture when its
+data is registered and in `en-US` when it is not, so a stand reporting an unknown culture
+degrades rather than breaks. Which locales to bundle is the application's call.
 
 ## Session flag
 
@@ -92,9 +100,10 @@ to the login form on this marker; the login/redirect decision belongs to the gua
 ## State lifetime
 
 Package services are application-wide singletons; state does not reset on user change. On
-sign-out, the application must call `UserContextService.destroy()` and
-`RightsService.clearCache()`. Do not call `destroy()` on section navigation — it is
-equivalent to signing out.
+sign-out, the application must call `UserContextService.destroy()`,
+`RightsService.clearCache()` and `EntitySchemaManager.clearCache()` — schemas are read
+under the rights of the user who asked for them. Do not call `destroy()` on section
+navigation — it is equivalent to signing out.
 
 ## Service route list
 
