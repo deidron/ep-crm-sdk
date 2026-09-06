@@ -8,15 +8,25 @@ const defaultDatePattern: string = 'dd.MM.yyyy';
 
 const defaultTimePattern: string = 'HH:mm';
 
-const formattingLocale: string = 'en-US';
+const fallbackLocale: string = 'en-US';
 
-const localeAmDesignator: string = 'AM';
-
-const localePmDesignator: string = 'PM';
+function hasLocaleData(locale: string): boolean {
+  try {
+    formatDate(0, 'y', locale);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 @Service()
 export class CultureDateService {
   private readonly userContext = inject(UserContextService);
+
+  readonly locale: Signal<string> = computed(() => {
+    const culture: string = this.userContext.currentCulture();
+    return culture && hasLocaleData(culture) ? culture : fallbackLocale;
+  });
 
   readonly datePattern: Signal<string> = computed(() =>
     toCldrDatePattern(this.format()?.shortDatePattern || defaultDatePattern),
@@ -45,21 +55,22 @@ export class CultureDateService {
     if (!(value instanceof Date)) {
       return '';
     }
+    const locale: string = this.locale();
     const pattern: string = this.pattern(mode);
-    return this.localizeDesignator(formatDate(value, pattern, formattingLocale), pattern, value);
+    const text: string = formatDate(value, pattern, locale);
+    const designator: string = this.designator(value);
+    if (!designator || !usesAmPmDesignator(pattern)) {
+      return text;
+    }
+    return text.replace(formatDate(value, 'a', locale), designator);
   }
 
-  private localizeDesignator(text: string, pattern: string, value: Date): string {
+  private designator(value: Date): string {
     const format: DateTimeFormatSettings | null = this.format();
-    if (!format || !usesAmPmDesignator(pattern)) {
-      return text;
+    if (!format) {
+      return '';
     }
-    const beforeNoon: boolean = value.getHours() < 12;
-    const designator: string = beforeNoon ? format.amDesignator : format.pmDesignator;
-    if (!designator) {
-      return text;
-    }
-    return text.replace(beforeNoon ? localeAmDesignator : localePmDesignator, designator);
+    return value.getHours() < 12 ? format.amDesignator : format.pmDesignator;
   }
 
   private format(): DateTimeFormatSettings | null {

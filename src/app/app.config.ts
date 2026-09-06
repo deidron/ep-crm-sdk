@@ -1,3 +1,5 @@
+import { registerLocaleData } from '@angular/common';
+import localeRu from '@angular/common/locales/ru';
 import { provideHttpClient, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import {
   ApplicationConfig,
@@ -60,7 +62,14 @@ export function interfaceCulture(userContext: UserContextService): string {
   return userContext.userInfo() ? userContext.currentCulture() : browserCulture();
 }
 
+export function registerCultureData(): void {
+  // en-US ships with Angular; every other supported culture has to be registered, or
+  // formatDate throws on the month and day names a culture pattern may ask for.
+  registerLocaleData(localeRu);
+}
+
 export function initializeSession(): Observable<unknown> {
+  registerCultureData();
   const userContext: UserContextService = inject(UserContextService);
   const translate: TranslateService = inject(TranslateService);
   const availability: PlatformAvailabilityService = inject(PlatformAvailabilityService);
