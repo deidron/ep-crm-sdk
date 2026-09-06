@@ -14,6 +14,7 @@ that verifies them on a live platform page.
 | `ep-crm-demo` (`src/`)                               | Demo application: sign-in, dashboard with entity-schema browsing, user profile, i18n, loading/error UI.                    |
 | [`ep-crm-probe`](probe/README.md)                    | Interface-less diagnostic bundle that runs `@ep-crm/core`/`@ep-crm/devkit` inside a Creatio/BPMSoft page.                  |
 
+- [Screens](#screens)
 - [Platforms](#platforms)
 - [Quick start](#quick-start)
 - [Project layout](#project-layout)
@@ -27,6 +28,18 @@ that verifies them on a live platform page.
 - [Internationalization](#internationalization)
 - [Contributing](#contributing)
 - [License](#license)
+
+## Screens
+
+The demo application, signed in against a stand and browsing an entity schema.
+
+| Sign-in                             | Dashboard                            |
+| ----------------------------------- | ------------------------------------ |
+| ![Sign-in page](docs/img/login.png) | ![Dashboard](docs/img/dashboard.png) |
+
+A section: the platform's display column, paging and search over `Contact`.
+
+![Contact section](docs/img/contact-section.png)
 
 ## Platforms
 
