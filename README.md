@@ -61,7 +61,7 @@ Prerequisites:
 | ---- | ---------------------------------------------------- |
 | Node | `^22.22.3 \|\| ^24.15.0 \|\| >=26.0.0` (CI: 24.20.0) |
 | pnpm | `11.25.0`, pinned in `packageManager`                |
-| CRM  | a reachable Creatio or BPMSoft stand                 |
+| CRM  | a reachable stand, and an account on it              |
 
 ```bash
 corepack enable          # pnpm from the packageManager field, no global install
@@ -69,6 +69,20 @@ pnpm install             # also installs the Husky hooks
 cp .env.example .env     # then set CRM_BACKEND to your stand
 pnpm start               # http://localhost:4200/, reload on source changes
 ```
+
+The first screen is a sign-in form, and it wants a user of the stand: the application
+keeps no accounts of its own, it posts what you type to the platform's
+`AuthService.svc/Login` and the session lives on as a platform cookie afterwards. On a
+development stand that is usually `Supervisor`. When the session ends, the application has
+nothing to renew and returns to the same form.
+
+The user needs read access to what the demo reads — the `Activity`, `Contact` and `Account`
+schemas and their records — or the sections come up empty or failing, which looks like a
+broken application rather than a closed door.
+
+Embedded in a platform page there is no sign-in at all: the session is already open, and
+the application takes it from there — see `@ep-crm/devkit`,
+["Two runtime modes"](projects/ep-crm/devkit/README.md#two-runtime-modes).
 
 `.env` configures the dev proxy only — it is read by `proxy.config.mjs` at serve time and
 never compiled into the bundle:
